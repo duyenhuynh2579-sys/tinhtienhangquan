@@ -115,9 +115,14 @@ with col2:
         st.dataframe(summary)
     
         st.bar_chart(summary.set_index("Tên món"))
-    if page == "🍽️ Order":
+    page = st.sidebar.selectbox(
+    "📋 Chọn trang",
+    ["🍽️ Order", "🔑 Admin"]
+)
 
-    # toàn bộ code order
+if page == "🍽️ Order":
+    # Toàn bộ code Order phải nằm ở đây
+    st.title("🍽️ Hệ thống Order")
 
 elif page == "🔑 Admin":
 
