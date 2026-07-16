@@ -6,8 +6,6 @@ page = st.sidebar.selectbox(
     ["🍽️ Order", "🔑 Admin"]
 )
 
-st.set_page_config(page_title="Order Nhà Hàng", layout="wide")
-
 st.title("🍽️ Hệ thống Order Nhà Hàng MR. BÌNH - Giảm 5% cho hoá đơn trên 1 triệu")
 
 # Thực đơn
@@ -53,19 +51,13 @@ with col1:
             st.session_state.order_dict[item]["Bàn"] = table_number
         # Nếu chưa có, tạo mới
         else:
-            st.session_state.order_dict[item] = {
-                "Tên món": item,
-                "Đơn giá": price,
-                "Số lượng": quantity,
-                "Thành tiền": price * quantity
-            }
         st.session_state.order_dict[item] = {
-    "Bàn": table_number,
-    "Tên món": item,
-    "Đơn giá": price,
-    "Số lượng": quantity,
-    "Thành tiền": price * quantity
-}
+            "Bàn": table_number,
+            "Tên món": item,
+            "Đơn giá": price,
+            "Số lượng": quantity,
+            "Thành tiền": price * quantity
+        }
         st.success(f"Đã cập nhật {item} vào giỏ!")
 
 with col2:
@@ -87,7 +79,7 @@ with col2:
         if giam_gia > 0:
             st.write(f"**Giảm giá (5%):** -{giam_gia:,.0f} VNĐ")
         st.metric(label="Tổng thanh toán", value=f"{tong_thanh_toan:,.0f} VNĐ")
-    if st.button("💳 Thanh toán"):
+   if st.button("💳 Thanh toán"):
 
     from datetime import datetime
 
@@ -96,16 +88,18 @@ with col2:
         st.session_state.history.append({
 
             "Thời gian": datetime.now(),
-
             "Bàn": row["Bàn"],
-
             "Tên món": row["Tên món"],
-
             "Số lượng": row["Số lượng"],
-
             "Thành tiền": row["Thành tiền"]
 
         })
+
+    st.success("Thanh toán thành công!")
+
+    st.session_state.order_dict = {}
+
+    st.rerun()
 
     st.success("Thanh toán thành công!")
 
@@ -131,7 +125,13 @@ if st.session_state.history:
     st.dataframe(summary)
 
     st.bar_chart(summary.set_index("Tên món"))
-if page == "🔑 Admin":
+if page == "🍽️ Order":
+
+    # toàn bộ code order
+
+elif page == "🔑 Admin":
+
+    # code admin
 
     st.title("🔑 Trang Quản Trị")
 
