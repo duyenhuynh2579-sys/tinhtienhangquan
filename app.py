@@ -57,20 +57,16 @@ with col2:
         st.table(df[["Tên món", "Đơn giá", "Số lượng", "Thành tiền"]])
         
         tam_tinh = df["Thành tiền"].sum()
-        giam_gia = (tam_tinh * 0.05) if tam_tinh > 1000000
-        giam_gia = (tam_tinh * 0.10) if tam_tinh > 5000000 else 0
-     
+        giam_gia = (tam_tinh * 0.05) if tam_tinh > 1000000 else 0
         
         if giam_gia > 0:
             st.info(f"🎉 Giảm 5% cho hóa đơn trên 1 triệu!")
-             st.info(f"🎉 Giảm 10% cho hóa đơn trên 50 triệu!")
         
         tong_thanh_toan = tam_tinh - giam_gia
         
         st.write(f"**Tạm tính:** {tam_tinh:,.0f} VNĐ")
         if giam_gia > 0:
             st.write(f"**Giảm giá (5%):** -{giam_gia:,.0f} VNĐ")
-            st.write(f"**Giảm giá (10%):** -{giam_gia:,.0f} VNĐ")
         st.metric(label="Tổng thanh toán", value=f"{tong_thanh_toan:,.0f} VNĐ")
         
         if st.button("Xóa giỏ hàng"):
