@@ -1,5 +1,10 @@
 import streamlit as st
 import pandas as pd
+st.set_page_config(page_title="Order Nhà Hàng", layout="wide")
+page = st.sidebar.selectbox(
+    "📋 Chọn trang",
+    ["🍽️ Order", "🔑 Admin"]
+)
 
 st.set_page_config(page_title="Order Nhà Hàng", layout="wide")
 
