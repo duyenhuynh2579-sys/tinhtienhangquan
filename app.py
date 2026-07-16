@@ -1,12 +1,12 @@
-import streamlit as st
+from datetime import datetime
 import pandas as pd
 import numpy as np
-from datetime import datetime
+import streamlit as st
 
-# Thiết lập cấu hình trang hiển thị rộng rãi, tối ưu trải nghiệm người dùng
+# Thiết lập cấu hình trang rộng rãi, trực quan cho người dùng
 st.set_page_config(page_title="Order Nhà Hàng & Real-time Analytics", layout="wide")
 
-# Thực đơn chính thức của nhà hàng
+# Thực đơn chính thức của nhà hàng Mr. Bình
 menu = {
     "Đồ ăn": {
         "Pizza Hải Sản": 150000, "Mì Ý Bò Bằm": 95000, "Burger Gà": 65000,
@@ -24,15 +24,15 @@ menu = {
 if 'order_dict' not in st.session_state:
     st.session_state.order_dict = {}
 
-# Khởi tạo trạng thái đăng nhập của Admin để tránh bị khóa khi chuyển trang
+# Khởi tạo trạng thái đăng nhập để giữ phiên hoạt động khi chuyển trang
 if 'admin_logged_in' not in st.session_state:
     st.session_state.admin_logged_in = False
 
-# Khởi tạo lịch sử đơn hàng trống hoàn toàn (Sẽ chỉ tăng lên khi có khách đặt và thanh toán thật)
+# Khởi tạo lịch sử đơn hàng hoàn toàn trống (Sẽ tích lũy trực tiếp từ hành động của khách)
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# Thiết lập thanh điều hướng dạng RADIO để hiển thị trực quan toàn bộ các trang trên Sidebar
+# Thiết lập thanh điều hướng dạng RADIO hiển thị trực diện ngay trên Sidebar không cần bấm chọn
 page = st.sidebar.radio(
     "📋 Chọn trang hệ thống",
     ["🍽️ Order", "🔑 Admin"]
@@ -42,7 +42,7 @@ page = st.sidebar.radio(
 # TRANG ORDER (Khách hàng / Nhân viên phục vụ)
 # ==========================================
 if page == "🍽️ Order":
-    st.title("🍽️ Hệ thống Order Nhà Hàng")
+    st.title("🍽️ Hệ thống Order Nhà Hàng DH")
     st.caption("Ghi nhận order nhanh chóng và chính xác theo thời gian thực")
 
     col1, col2 = st.columns([1, 1.3])
@@ -97,6 +97,7 @@ if page == "🍽️ Order":
             st.metric("Tổng thanh toán thực tế", f"{tong_thanh_toan:,.0f} VNĐ")
 
             col_btn1, col_btn2 = st.columns(2)
+            
             with col_btn1:
                 if st.button("💳 Thanh toán"):
                     # Ghi nhận chính xác ngày giờ thật của hệ thống lúc bấm thanh toán
@@ -128,6 +129,7 @@ if page == "🍽️ Order":
 elif page == "🔑 Admin":
     st.title("🔑 Trang Quản Trị & Phân Tích Doanh Thu")
 
+    # Bảo mật thông tin bằng Form đăng nhập
     if not st.session_state.admin_logged_in:
         with st.form("admin_login_form"):
             password = st.text_input("Nhập mật khẩu quản trị", type="password")
@@ -170,7 +172,7 @@ elif page == "🔑 Admin":
         df_menu = pd.DataFrame(data, columns=["Phân loại", "Tên món", "Đơn giá (VNĐ)"])
         st.dataframe(df_menu, use_container_width=True, hide_index=True)
 
-    # --- TAB 2: NHẬT KÝ GIAO DỊCH THẬT ---
+    # --- TAB 2: NHẬT KÝ GIAO DỊCH THẬT & DOANH THU THEO NGÀY ---
     with tab2:
         st.subheader("Doanh thu & Hóa đơn thực tế từ khách gọi")
         if st.session_state.history:
@@ -181,22 +183,17 @@ elif page == "🔑 Admin":
             col_met1.metric("Tổng doanh thu tích lũy (Real-time)", f"{tong_doanh_thu:,.0f} VNĐ")
             col_met2.metric("Số lượng món đã phục vụ", f"{df_history['Số lượng'].sum()} phần")
 
-            # ----------------------------------------------------
-            # THÊM MỚI: THỐNG KÊ DOANH THU THEO TỪNG NGÀY
-            # ----------------------------------------------------
             st.markdown("---")
             st.subheader("📅 Thống kê doanh thu theo Ngày")
             
-            # Trích xuất cột ngày (YYYY-MM-DD) từ chuỗi Thời gian thực tế
+            # Trích xuất ngày chính xác từ chuỗi thời gian thanh toán thực tế
             df_history["Ngày"] = pd.to_datetime(df_history["Thời gian"]).dt.date
-            
-            # Tính toán doanh thu tổng theo từng ngày
             df_daily_revenue = df_history.groupby("Ngày")["Thành tiền"].sum().reset_index()
             df_daily_revenue.columns = ["Ngày", "Doanh thu (VNĐ)"]
             
             col_chart_day, col_table_day = st.columns([1.5, 1])
             with col_chart_day:
-                st.write("**Biểu đồ doanh thu hàng ngày:**")
+                st.write("**Biểu đồ cột doanh thu hàng ngày:**")
                 st.bar_chart(df_daily_revenue.set_index("Ngày")["Doanh thu (VNĐ)"])
                 
             with col_table_day:
@@ -206,7 +203,6 @@ elif page == "🔑 Admin":
                     use_container_width=True,
                     hide_index=True
                 )
-            # ----------------------------------------------------
 
             st.markdown("---")
             st.subheader("Chi tiết lịch sử thanh toán thực tế")
@@ -219,21 +215,23 @@ elif page == "🔑 Admin":
         st.subheader("📊 Biểu đồ Thống kê Real-time")
         
         if st.session_state.history:
-            # Chuyển đổi dữ liệu lịch sử khách đặt thật sang DataFrame
+            # Chuyển đổi dữ liệu lịch sử sang DataFrame phân tích
             df_anal = pd.DataFrame(st.session_state.history)
             df_anal["Thời gian"] = pd.to_datetime(df_anal["Thời gian"])
             
-            # Trích xuất thời gian thật để phân tách phân tích
+            # Trích xuất thông tin thời gian thực
             df_anal["Giờ"] = df_anal["Thời gian"].dt.hour
             df_anal["Tháng-Năm"] = df_anal["Thời gian"].dt.strftime("%m/%Y")
             df_anal["Tháng_Số"] = df_anal["Thời gian"].dt.month
             
-            # 1. Tính toán KPIs tổng quan dựa trên các hóa đơn thật
+            # 1. Tính toán KPIs tổng quan dựa hoàn toàn trên hóa đơn thật
             best_seller = df_anal.groupby("Tên món")["Số lượng"].sum().idxmax()
             best_seller_qty = df_anal.groupby("Tên món")["Số lượng"].sum().max()
             
-            best_hour = df_anal.groupby("Giờ")["Số lượng"].sum().idxmax()
-            best_hour_qty = df_anal.groupby("Giờ")["Số lượng"].sum().max()
+            # Tính toán chính xác KHUNG GIỜ VÀNG theo thời gian thực từ dữ liệu lịch sử
+            hourly_sales = df_anal.groupby("Giờ")["Số lượng"].sum()
+            best_hour = hourly_sales.idxmax()
+            best_hour_qty = hourly_sales.max()
             
             best_month = df_anal.groupby("Tháng-Năm")["Thành tiền"].sum().idxmax()
             best_month_rev = df_anal.groupby("Tháng-Năm")["Thành tiền"].sum().max()
@@ -245,6 +243,7 @@ elif page == "🔑 Admin":
                 st.metric(label=best_seller, value=f"{best_seller_qty} phần")
             with col_kpi2:
                 st.warning("⚡ KHUNG GIỜ VÀNG (Đông khách nhất)")
+                # Hiển thị khung giờ động tính từ thời điểm thanh toán của khách
                 st.metric(label=f"Khung giờ: {best_hour:02d}:00 - {(best_hour+1):02d}:00", value=f"{best_hour_qty} phần")
             with col_kpi3:
                 st.success("📅 THÁNG DOANH THU ĐỈNH ĐIỂM")
@@ -265,8 +264,7 @@ elif page == "🔑 Admin":
             col_chart1, col_table1 = st.columns([1.5, 1])
             with col_chart1:
                 st.write("**Biểu đồ cột thể hiện Tổng số lượng bán ra:**")
-                chart_data = summary_mon.set_index("Tên món")
-                st.bar_chart(chart_data["Số_lượng_bán"])
+                st.bar_chart(summary_mon.set_index("Tên món")["Số_lượng_bán"])
             with col_table1:
                 st.write("**Số liệu doanh thu thực tế từng món:**")
                 st.dataframe(
@@ -285,7 +283,7 @@ elif page == "🔑 Admin":
                 Doanh_thu=("Thành tiền", "sum")
             ).reset_index()
             
-            # Tạo trục 24 tiếng đầy đủ để biểu đồ mượt mà
+            # Tạo trục 24 tiếng đầy đủ để biểu đồ mượt mà, trực quan
             all_hours = pd.DataFrame({"Giờ": range(24)})
             summary_gio = pd.merge(all_hours, summary_gio, on="Giờ", how="left").fillna(0)
             
@@ -295,7 +293,7 @@ elif page == "🔑 Admin":
                 st.bar_chart(summary_gio.set_index("Giờ")["Số_lượng_món"])
             with col_info2:
                 st.write("**Thời điểm bán chạy nhất trong ngày:**")
-                st.markdown(f"👉 Khung giờ đắt khách nhất hiện tại là từ **{best_hour:02d}:00 - {(best_hour+1):02d}:00** với tổng cộng **{best_hour_qty} phần** được thanh toán.")
+                st.markdown(f"👉 Khung giờ đắt khách nhất hiện tại dựa trên hóa đơn thực tế là từ **{best_hour:02d}:00 - {(best_hour+1):02d}:00** với tổng cộng **{best_hour_qty} phần** được thanh toán.")
                 st.dataframe(
                     summary_gio[summary_gio["Số_lượng_món"] > 0].style.format({"Doanh_thu": "{:,.0f} VNĐ"}),
                     use_container_width=True,
