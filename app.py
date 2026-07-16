@@ -38,7 +38,7 @@ page = st.sidebar.selectbox(
 # TRANG ORDER (Khách hàng / Nhân viên phục vụ)
 # ==========================================
 if page == "🍽️ Order":
-    st.title("🍽️ Hệ thống Order Nhà Hàng MR. BÌNH")
+    st.title("🍽️ Hệ thống Order Nhà Hàng")
     st.caption("Ghi nhận order nhanh chóng và chính xác theo thời gian thực")
 
     col1, col2 = st.columns([1, 1.3])
