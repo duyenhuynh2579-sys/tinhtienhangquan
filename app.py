@@ -43,22 +43,22 @@ with col1:
     if st.button("Thêm vào giỏ"):
         price = menu[category][item]
         # Nếu món đã có trong giỏ, cộng dồn số lượng
-       if item in st.session_state.order_dict:
-    st.session_state.order_dict[item]["Số lượng"] += quantity
-    st.session_state.order_dict[item]["Thành tiền"] = (
-        st.session_state.order_dict[item]["Số lượng"] * price
-    )
-    st.session_state.order_dict[item]["Bàn"] = table_number
+    if item in st.session_state.order_dict:
+        st.session_state.order_dict[item]["Số lượng"] += quantity
+        st.session_state.order_dict[item]["Thành tiền"] = (
+            st.session_state.order_dict[item]["Số lượng"] * price
+        )
+        st.session_state.order_dict[item]["Bàn"] = table_number
 
-else:
-    st.session_state.order_dict[item] = {
-        "Bàn": table_number,
-        "Tên món": item,
-        "Đơn giá": price,
-        "Số lượng": quantity,
-        "Thành tiền": price * quantity
-    }
-        st.success(f"Đã cập nhật {item} vào giỏ!")
+    else:
+        st.session_state.order_dict[item] = {
+            "Bàn": table_number,
+            "Tên món": item,
+            "Đơn giá": price,
+            "Số lượng": quantity,
+            "Thành tiền": price * quantity
+        }
+    
 
 with col2:
     st.subheader("Giỏ hàng")
