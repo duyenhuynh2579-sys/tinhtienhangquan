@@ -1,13 +1,14 @@
 import streamlit as st
 import pandas as pd
+
 st.set_page_config(page_title="Order Nhà Hàng", layout="wide")
+
 page = st.sidebar.selectbox(
     "📋 Chọn trang",
     ["🍽️ Order", "🔑 Admin"]
 )
 
-st.title("🍽️ Hệ thống Order Nhà Hàng MR. BÌNH - Giảm 5% cho hoá đơn trên 1 triệu")
-
+st.title("🍽️ Hệ thống Order Nhà Hàng MR. BÌNH")
 # Thực đơn
 menu = {
     "Đồ ăn": {
@@ -41,8 +42,8 @@ with col1:
     quantity = st.number_input("Số lượng:", min_value=1, step=1, value=1)
     
     if st.button("Thêm vào giỏ"):
-        price = menu[category][item]
-        # Nếu món đã có trong giỏ, cộng dồn số lượng
+    price = menu[category][item]
+
     if item in st.session_state.order_dict:
         st.session_state.order_dict[item]["Số lượng"] += quantity
         st.session_state.order_dict[item]["Thành tiền"] = (
@@ -58,7 +59,8 @@ with col1:
             "Số lượng": quantity,
             "Thành tiền": price * quantity
         }
-    
+
+    st.success(f"Đã thêm {item} vào giỏ!")
 
 with col2:
     st.subheader("Giỏ hàng")
@@ -115,14 +117,6 @@ with col2:
         st.dataframe(summary)
     
         st.bar_chart(summary.set_index("Tên món"))
-    page = st.sidebar.selectbox(
-    "📋 Chọn trang",
-    ["🍽️ Order", "🔑 Admin"]
-)
-
-if page == "🍽️ Order":
-    # Toàn bộ code Order phải nằm ở đây
-    st.title("🍽️ Hệ thống Order")
 
 elif page == "🔑 Admin":
 
