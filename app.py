@@ -87,7 +87,7 @@ with col2:
         if giam_gia > 0:
             st.write(f"**Giảm giá (5%):** -{giam_gia:,.0f} VNĐ")
         st.metric(label="Tổng thanh toán", value=f"{tong_thanh_toan:,.0f} VNĐ")
-        if st.button("💳 Thanh toán"):
+    if st.button("💳 Thanh toán"):
 
     from datetime import datetime
 
