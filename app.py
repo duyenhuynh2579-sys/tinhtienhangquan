@@ -28,9 +28,9 @@ if 'order_dict' not in st.session_state:
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# Tạo thanh điều hướng Sidebar
-page = st.sidebar.selectbox(
-    "📋 Chọn trang",
+# Thiết lập thanh điều hướng dạng RADIO để hiển thị trực quan toàn bộ các trang trên Sidebar
+page = st.sidebar.radio(
+    "📋 Chọn trang hệ thống",
     ["🍽️ Order", "🔑 Admin"]
 )
 
@@ -38,7 +38,7 @@ page = st.sidebar.selectbox(
 # TRANG ORDER (Khách hàng / Nhân viên phục vụ)
 # ==========================================
 if page == "🍽️ Order":
-    st.title("🍽️ Hệ thống Order Nhà Hàng")
+    st.title("🍽️ Hệ thống Order Nhà Hàng MR. BÌNH")
     st.caption("Ghi nhận order nhanh chóng và chính xác theo thời gian thực")
 
     col1, col2 = st.columns([1, 1.3])
@@ -161,8 +161,36 @@ elif page == "🔑 Admin":
             col_met1.metric("Tổng doanh thu tích lũy (Real-time)", f"{tong_doanh_thu:,.0f} VNĐ")
             col_met2.metric("Số lượng món đã phục vụ", f"{df_history['Số lượng'].sum()} phần")
 
+            # ----------------------------------------------------
+            # THÊM MỚI: THỐNG KÊ DOANH THU THEO TỪNG NGÀY
+            # ----------------------------------------------------
+            st.markdown("---")
+            st.subheader("📅 Thống kê doanh thu theo Ngày")
+            
+            # Trích xuất cột ngày (YYYY-MM-DD) từ chuỗi Thời gian thực tế
+            df_history["Ngày"] = pd.to_datetime(df_history["Thời gian"]).dt.date
+            
+            # Tính toán doanh thu tổng theo từng ngày
+            df_daily_revenue = df_history.groupby("Ngày")["Thành tiền"].sum().reset_index()
+            df_daily_revenue.columns = ["Ngày", "Doanh thu (VNĐ)"]
+            
+            col_chart_day, col_table_day = st.columns([1.5, 1])
+            with col_chart_day:
+                st.write("**Biểu đồ doanh thu hàng ngày:**")
+                st.bar_chart(df_daily_revenue.set_index("Ngày")["Doanh thu (VNĐ)"])
+                
+            with col_table_day:
+                st.write("**Bảng liệt kê doanh thu chi tiết:**")
+                st.dataframe(
+                    df_daily_revenue.style.format({"Doanh thu (VNĐ)": "{:,.0f} VNĐ"}),
+                    use_container_width=True,
+                    hide_index=True
+                )
+            # ----------------------------------------------------
+
+            st.markdown("---")
             st.subheader("Chi tiết lịch sử thanh toán thực tế")
-            st.dataframe(df_history, use_container_width=True, hide_index=True)
+            st.dataframe(df_history[["Thời gian", "Bàn", "Tên món", "Số lượng", "Thành tiền"]], use_container_width=True, hide_index=True)
         else:
             st.info("Hệ thống chưa ghi nhận bất kỳ giao dịch thanh toán nào từ khách hàng.")
 
