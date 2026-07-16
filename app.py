@@ -27,11 +27,17 @@ menu = {
 # Sử dụng dict trong session_state để quản lý món theo tên
 if 'order_dict' not in st.session_state:
     st.session_state.order_dict = {}
+if "history" not in st.session_state:
+    st.session_state.history = []
 
 col1, col2 = st.columns([1, 1.5])
 
 with col1:
     st.subheader("Chọn Món")
+    table_number = st.selectbox(
+    "🪑 Chọn số bàn",
+    [f"Bàn {i}" for i in range(1,21)]
+)
     category = st.selectbox("Chọn loại:", list(menu.keys()))
     item = st.selectbox("Chọn món:", list(menu[category].keys()))
     quantity = st.number_input("Số lượng:", min_value=1, step=1, value=1)
@@ -42,8 +48,9 @@ with col1:
         if item in st.session_state.order_dict:
             st.session_state.order_dict[item]["Số lượng"] += quantity
             st.session_state.order_dict[item]["Thành tiền"] = (
-                st.session_state.order_dict[item]["Số lượng"] * price
+            st.session_state.order_dict[item]["Số lượng"] * price
             )
+            st.session_state.order_dict[item]["Bàn"] = table_number
         # Nếu chưa có, tạo mới
         else:
             st.session_state.order_dict[item] = {
@@ -52,6 +59,13 @@ with col1:
                 "Số lượng": quantity,
                 "Thành tiền": price * quantity
             }
+        st.session_state.order_dict[item] = {
+    "Bàn": table_number,
+    "Tên món": item,
+    "Đơn giá": price,
+    "Số lượng": quantity,
+    "Thành tiền": price * quantity
+}
         st.success(f"Đã cập nhật {item} vào giỏ!")
 
 with col2:
@@ -73,12 +87,50 @@ with col2:
         if giam_gia > 0:
             st.write(f"**Giảm giá (5%):** -{giam_gia:,.0f} VNĐ")
         st.metric(label="Tổng thanh toán", value=f"{tong_thanh_toan:,.0f} VNĐ")
-        
+        if st.button("💳 Thanh toán"):
+
+    from datetime import datetime
+
+    for row in st.session_state.order_dict.values():
+
+        st.session_state.history.append({
+
+            "Thời gian": datetime.now(),
+
+            "Bàn": row["Bàn"],
+
+            "Tên món": row["Tên món"],
+
+            "Số lượng": row["Số lượng"],
+
+            "Thành tiền": row["Thành tiền"]
+
+        })
+
+    st.success("Thanh toán thành công!")
+
+    st.session_state.order_dict = {}
+
+    st.rerun()
         if st.button("Xóa giỏ hàng"):
             st.session_state.order_dict = {}
             st.rerun()
     else:
         st.info("Giỏ hàng đang trống.")
+        st.divider()
+
+st.header("📊 Thống kê bán hàng")
+if st.session_state.history:
+
+    history_df = pd.DataFrame(st.session_state.history)
+
+    summary = history_df.groupby("Tên món")["Số lượng"].sum().reset_index()
+
+    st.subheader("Tổng số lượng từng món")
+
+    st.dataframe(summary)
+
+    st.bar_chart(summary.set_index("Tên món"))
 if page == "🔑 Admin":
 
     st.title("🔑 Trang Quản Trị")
