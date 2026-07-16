@@ -24,6 +24,10 @@ menu = {
 if 'order_dict' not in st.session_state:
     st.session_state.order_dict = {}
 
+# Khởi tạo trạng thái đăng nhập của Admin để tránh bị khóa khi chuyển trang
+if 'admin_logged_in' not in st.session_state:
+    st.session_state.admin_logged_in = False
+
 # Khởi tạo lịch sử đơn hàng trống hoàn toàn (Sẽ chỉ tăng lên khi có khách đặt và thanh toán thật)
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -38,7 +42,7 @@ page = st.sidebar.radio(
 # TRANG ORDER (Khách hàng / Nhân viên phục vụ)
 # ==========================================
 if page == "🍽️ Order":
-    st.title("🍽️ Hệ thống Order Nhà Hàng")
+    st.title("🍽️ Hệ thống Order Nhà Hàng MR. BÌNH")
     st.caption("Ghi nhận order nhanh chóng và chính xác theo thời gian thực")
 
     col1, col2 = st.columns([1, 1.3])
@@ -124,13 +128,29 @@ if page == "🍽️ Order":
 elif page == "🔑 Admin":
     st.title("🔑 Trang Quản Trị & Phân Tích Doanh Thu")
 
-    password = st.text_input("Nhập mật khẩu quản trị", type="password")
-
-    if password != "123456":
-        st.warning("Vui lòng nhập mật khẩu chính xác để xem dữ liệu kinh doanh nhạy cảm.")
+    if not st.session_state.admin_logged_in:
+        with st.form("admin_login_form"):
+            password = st.text_input("Nhập mật khẩu quản trị", type="password")
+            login_submitted = st.form_submit_button("🔑 Đăng nhập")
+            
+            if login_submitted:
+                if password == "123456":
+                    st.session_state.admin_logged_in = True
+                    st.success("Đăng nhập thành công!")
+                    st.rerun()
+                else:
+                    st.error("Mật khẩu không chính xác. Vui lòng kiểm tra lại!")
+                    
+        st.warning("Vui lòng nhập mật khẩu và bấm đăng nhập để xem dữ liệu kinh doanh nhạy cảm.")
         st.stop()
 
-    st.success("Xác thực thành công!")
+    col_header_title, col_header_btn = st.columns([4, 1])
+    with col_header_title:
+        st.success("Xác thực quyền Quản trị viên thành công!")
+    with col_header_btn:
+        if st.button("🔒 Đăng xuất"):
+            st.session_state.admin_logged_in = False
+            st.rerun()
 
     # Thiết lập các tab quản trị chuyên sâu độc quyền cho Admin
     tab1, tab2, tab3 = st.tabs([
